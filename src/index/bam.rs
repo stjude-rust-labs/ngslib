@@ -69,7 +69,7 @@ pub fn index(src: PathBuf) -> anyhow::Result<()> {
     let mut builder = bai::Index::builder();
     let mut start_position = reader.virtual_position();
 
-    let mut counter = RecordCounter::new();
+    let mut counter = RecordCounter::default();
 
     loop {
         match reader.read_record(&header.parsed, &mut record) {

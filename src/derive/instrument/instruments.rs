@@ -1,7 +1,6 @@
 //! Knowledge about which instrument ids map to which machine types.
 
-use std::collections::HashMap;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 /// Encapsulates the knowledge we currently have on which instrument name patterns map
 /// to which machine types as a [`HashMap`].

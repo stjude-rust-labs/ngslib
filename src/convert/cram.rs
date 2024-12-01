@@ -52,7 +52,7 @@ pub async fn to_sam_async(
         .with_context(|| "writing SAM header")?;
 
     // (5) Write each record in the CRAM file to the SAM file.
-    let mut counter = RecordCounter::new();
+    let mut counter = RecordCounter::default();
     let mut records = reader.records(&repository, &header.parsed);
 
     while let Some(record) = records
@@ -125,7 +125,7 @@ pub async fn to_bam_async(
         .with_context(|| "writing BAM reference sequences")?;
 
     // (6) Write each record in the CRAM file to the BAM file.
-    let mut counter = RecordCounter::new();
+    let mut counter = RecordCounter::default();
     let mut records = reader.records(&repository, &header.parsed);
 
     while let Some(record) = records

@@ -50,8 +50,13 @@ pub struct QcArgs {
     /// to process per sequence in the second pass.
     ///
     /// This is generally only used for testing purposes.
-    #[arg(short = 'n', long, value_name = "USIZE")]
-    num_records: Option<usize>,
+    #[arg(
+        short,
+        long,
+        default_value_t,
+        value_name = "'all' or a positive, non-zero integer"
+    )]
+    num_records: NumberOfRecords,
 
     /// Directory to output files to. Defaults to current working directory.
     #[arg(short = 'o', long, value_name = "PATH")]
@@ -201,8 +206,6 @@ pub fn qc(args: QcArgs) -> anyhow::Result<()> {
     // Number of Records //
     //===================//
 
-    let num_records = NumberOfRecords::from(args.num_records);
-
     app(
         src,
         reference_fasta,
@@ -210,7 +213,7 @@ pub fn qc(args: QcArgs) -> anyhow::Result<()> {
         reference_genome,
         output_prefix,
         output_directory,
-        num_records,
+        args.num_records,
         feature_names,
         only_facet,
         vaf_file_path,
@@ -300,7 +303,7 @@ fn app(
         //====================================================================//
 
         info!("Starting first pass for QC stats.");
-        let mut counter = RecordCounter::new();
+        let mut counter = RecordCounter::default();
 
         for result in reader.records(&header.parsed) {
             let record = result?;
@@ -349,9 +352,9 @@ fn app(
         info!("Starting second pass for QC stats.");
         let mut reader = File::open(&src).map(bam::Reader::new)?;
         let index =
-            bai::read(&src.with_extension("bam.bai")).with_context(|| "reading BAM index")?;
+            bai::read(src.with_extension("bam.bai")).with_context(|| "reading BAM index")?;
 
-        let mut counter = RecordCounter::new();
+        let mut counter = RecordCounter::default();
 
         for (name, seq) in header.parsed.reference_sequences() {
             let start = Position::MIN;

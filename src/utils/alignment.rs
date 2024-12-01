@@ -1,10 +1,24 @@
 //! Utilities related to alignment of sequences.
 
 use anyhow::bail;
-use noodles::sam::record::{cigar::op::Kind, sequence::Base, Cigar};
+use noodles::sam::record::{cigar::op::Kind, sequence::Base, Cigar, MappingQuality};
 
 use super::cigar::consumes_reference;
 use super::cigar::consumes_sequence;
+
+/// Filter an alignment record by its mapping quality. `true` means "filter the record" and `false` means "do not filter the record".
+pub fn filter_by_mapq(
+    record: &noodles::sam::alignment::Record,
+    min_mapq: Option<MappingQuality>,
+) -> bool {
+    match min_mapq {
+        Some(min_mapq) => match record.mapping_quality() {
+            Some(mapq) => mapq.get() < min_mapq.get(),
+            None => true, // Filter if no MAPQ is present
+        },
+        None => false, // Do not filter if no min MAPQ is specified
+    }
+}
 
 /// Turns a condensed Cigar representation into a flattened representation. For
 /// example, 10M will become a Vec of length 10 comprised completely of
@@ -127,9 +141,36 @@ impl<'a> ReferenceRecordStepThrough<'a> {
 
 #[cfg(test)]
 mod tests {
-    use noodles::sam::record::{Cigar, Sequence};
+    use noodles::sam::record::{Cigar, MappingQuality, Sequence};
 
-    use super::ReferenceRecordStepThrough;
+    use super::*;
+
+    #[test]
+    pub fn it_filters_by_mapq() -> anyhow::Result<()> {
+        let mut record = noodles::sam::alignment::Record::default();
+        assert!(filter_by_mapq(
+            &record,
+            Some(MappingQuality::new(0).unwrap())
+        )); // Get filtered because MAPQ is missing
+        assert!(!filter_by_mapq(&record, None)); // Do not get filtered because filter is disabled
+
+        record
+            .mapping_quality_mut()
+            .replace(MappingQuality::new(10).unwrap());
+        assert!(!filter_by_mapq(
+            &record,
+            Some(MappingQuality::new(0).unwrap())
+        )); // Do not get filtered because MAPQ is present
+        assert!(!filter_by_mapq(
+            &record,
+            Some(MappingQuality::new(1).unwrap())
+        )); // Do not get filtered because MAPQ is greater than 1
+        assert!(filter_by_mapq(
+            &record,
+            Some(MappingQuality::new(11).unwrap())
+        )); // Do get filtered because MAPQ is less than 11
+        Ok(())
+    }
 
     #[test]
     pub fn it_correctly_returns_zero_edits_when_sequences_are_identical() -> anyhow::Result<()> {

@@ -861,6 +861,7 @@ dependencies = [
  "indexmap",
  "indicatif",
  "itertools",
+ "lazy_static",
  "noodles",
  "num-format",
  "plotly",

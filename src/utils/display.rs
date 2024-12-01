@@ -24,29 +24,46 @@ impl fmt::Display for PercentageFormat {
 }
 
 /// Utility struct used to uniformly count and report the number of records processed.
-#[derive(Default)]
-pub struct RecordCounter(usize);
+pub struct RecordCounter {
+    /// The number of records processed.
+    count: usize,
+
+    /// The number of records to log every.
+    log_every: usize,
+}
+
+impl Default for RecordCounter {
+    fn default() -> Self {
+        RecordCounter {
+            count: 0,
+            log_every: 1_000_000,
+        }
+    }
+}
 
 impl RecordCounter {
     /// Creates a new `RecordCounter`.
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(log_every: Option<usize>) -> Self {
+        RecordCounter {
+            count: 0,
+            log_every: log_every.unwrap_or(1_000_000),
+        }
     }
 
     /// Gets the current number of records counted via a copy.
     pub fn get(&self) -> usize {
-        self.0
+        self.count
     }
 
     /// Increments the counter and reports the number of records processed (if
     /// appropriate).
     pub fn inc(&mut self) {
-        self.0 += 1;
+        self.count += 1;
 
-        if self.0 % 1_000_000 == 0 {
+        if self.count % self.log_every == 0 {
             info!(
                 "  [*] Processed {} records.",
-                self.0.to_formatted_string(&Locale::en),
+                self.count.to_formatted_string(&Locale::en),
             );
         }
     }
@@ -57,7 +74,7 @@ impl RecordCounter {
     /// (if it exists, otherwise it loops forever).
     pub fn time_to_break(&self, limit: &NumberOfRecords) -> bool {
         match limit {
-            NumberOfRecords::Some(v) => self.0 >= *v,
+            NumberOfRecords::Some(v) => self.count >= <usize>::from(*v),
             NumberOfRecords::All => false,
         }
     }

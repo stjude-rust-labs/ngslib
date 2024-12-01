@@ -45,7 +45,7 @@ pub async fn to_sam_async(
         .await
         .with_context(|| "writing SAM header")?;
 
-    let mut counter = RecordCounter::new();
+    let mut counter = RecordCounter::default();
     let mut record = Record::default();
 
     // (4) Write each record in the BAM file to the SAM file.
@@ -131,7 +131,7 @@ pub async fn to_cram_async(
         .await
         .with_context(|| "writing CRAM file header")?;
 
-    let mut counter = RecordCounter::new();
+    let mut counter = RecordCounter::default();
     let mut record = Record::default();
 
     // (6) Write each record in the BAM file to the CRAM file.

@@ -19,6 +19,7 @@ git-testament = "0.2.1"
 indexmap = "1.9.1"
 indicatif = "0.16.2"
 itertools = "0.10.5"
+lazy_static = "1.4.0"
 noodles = { version = "0.34.0", features = [
     "async",
     "bam",

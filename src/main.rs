@@ -89,8 +89,23 @@ fn main() -> anyhow::Result<()> {
     match cli.subcommand {
         Subcommands::Convert(args) => convert::command::convert(args)?,
         Subcommands::Derive(args) => match args.subcommand {
+            derive::command::DeriveSubcommand::Encoding(args) => {
+                derive::command::encoding::derive(args)?
+            }
+            derive::command::DeriveSubcommand::Endedness(args) => {
+                derive::command::endedness::derive(args)?
+            }
             derive::command::DeriveSubcommand::Instrument(args) => {
                 derive::command::instrument::derive(args)?
+            }
+            derive::command::DeriveSubcommand::Readlen(args) => {
+                derive::command::readlen::derive(args)?
+            }
+            derive::command::DeriveSubcommand::Strandedness(args) => {
+                derive::command::strandedness::derive(args)?
+            }
+            derive::command::DeriveSubcommand::JunctionAnnotation(args) => {
+                derive::command::junction_annotation::derive(args)?
             }
         },
         Subcommands::Generate(args) => generate::command::generate(args)?,

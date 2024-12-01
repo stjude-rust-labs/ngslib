@@ -12,20 +12,8 @@ use tracing::info;
 
 use crate::generate::providers::reference_provider::ReferenceGenomeSequenceProvider;
 use crate::generate::providers::SequenceProvider;
+use crate::utils::args::arg_in_range as error_rate_in_range;
 use crate::utils::formats;
-
-/// Utility method to parse the error rate passed in on the command line and
-/// ensure the rate is within the range [0.0, 1.0].
-pub fn error_rate_in_range(error_rate_raw: &str) -> Result<f32, String> {
-    let error_rate: f32 = error_rate_raw
-        .parse()
-        .map_err(|_| format!("{} isn't a float", error_rate_raw))?;
-
-    match (0.0..=1.0).contains(&error_rate) {
-        true => Ok(error_rate),
-        false => Err(String::from("Error rate must be between 0.0 and 1.0")),
-    }
-}
 
 /// Command line arguments for `ngs generate`.
 #[derive(Args)]
@@ -42,9 +30,8 @@ pub struct GenerateArgs {
     reference_providers: Vec<String>,
 
     /// The error rate for the sequencer as a fraction between [0.0, 1.0] (per base).
-    #[arg(short, long, value_name = "F32", default_value = "0.0001")]
-    #[arg(value_parser = error_rate_in_range)]
-    error_rate: Option<f32>,
+    #[arg(short, long, value_name = "F64", default_value = "0.0001")]
+    error_rate: f64,
 
     /// Specifies the number of records to generate.
     #[arg(short, long, value_name = "USIZE", conflicts_with = "coverage")]
@@ -58,6 +45,9 @@ pub struct GenerateArgs {
 /// Main function for the `ngs generate` subcommand.
 pub fn generate(args: GenerateArgs) -> anyhow::Result<()> {
     // (0) Parse arguments needed for subcommand.
+    let _error_rate = error_rate_in_range(args.error_rate, 0.0..=1.0)
+        .with_context(|| "Error rate is not within acceptable range")?;
+
     let result: anyhow::Result<Vec<_>> = args
         .reference_providers
         .iter()
